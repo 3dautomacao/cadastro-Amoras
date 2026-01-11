@@ -1,225 +1,255 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Cadastro Facial</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      text-align: center;
-      padding: 10px;
-    }
+<title>Cadastro Facial</title>
 
-    img.logo {
-      max-width: 320px;
-      margin: 10px auto;
-    }
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
-    input {
-      width: 90%;
-      max-width: 320px;
-      padding: 8px;
-      margin: 6px auto;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      display: block;
-    }
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    text-align: center;
+    margin: 0;
+    padding: 10px;
+  }
 
-    button {
-      width: 22%;
-      padding: 8px;
-      margin: 6px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      background: #0066cc;
-      color: white;
-      cursor: pointer;
-    }
+  img.logo {
+    width: 80vw;
+    max-width: 320px;
+    margin: 10px auto;
+  }
 
-    video {
-      width: 240px;
-      border-radius: 10px;
-    }
+  input {
+    width: 90vw;
+    max-width: 320px;
+    padding: 10px;
+    margin: 6px auto;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    display: block;
+  }
 
-    .camera-container {
-      position: relative;
-      display: inline-block;
-    }
+  button {
+    width: 60vw;
+    max-width: 220px;
+    padding: 10px;
+    margin: 8px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: none;
+    background: #0066cc;
+    color: white;
+    cursor: pointer;
+  }
 
-    .face-oval {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 160px;
-      height: 240px;
-      border: 3px solid #00ff00;
-      border-radius: 50% / 60%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
+  .camera-container {
+    position: relative;
+    width: 90vw;
+    max-width: 320px;
+    margin: auto;
+  }
 
-    .btn-trocar {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40%;
-      font-size: 13px;
-      padding: 6px;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      border-radius: 8px;
-      z-index: 10;
-    }
+  video {
+    width: 100%;
+    border-radius: 12px;
+  }
 
-    .info {
-      background: #e0f0ff;
-      padding: 8px;
-      border-radius: 6px;
-      margin: 8px auto;
-      font-size: 13px;
-      width: 90%;
-      max-width: 320px;
-    }
+  .face-oval {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 90%;
+    border: 3px solid #00ff00;
+    border-radius: 50% / 60%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
 
-    .lgpd {
-      background: #fff3cd;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 10px auto;
-      font-size: 13px;
-      width: 90%;
-      max-width: 320px;
-    }
+  .btn-trocar {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10;
+  }
 
-    #preview {
-      display: none;
-      margin-top: 10px;
-    }
+  .info {
+    background: #e0f0ff;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px auto;
+    font-size: 14px;
+    max-width: 320px;
+  }
 
-    #status {
-      display: none;
-      font-weight: bold;
-      color: green;
-      margin-top: 15px;
-    }
-  </style>
+  #preview img {
+    width: 90vw;
+    max-width: 320px;
+    border-radius: 12px;
+  }
+
+  .lgpd {
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    max-width: 320px;
+    margin: auto;
+  }
+</style>
 </head>
 
 <body>
 
-  <img src="logo.png" class="logo">
+<img src="logo.png" class="logo">
 
-  <h3>Cadastro Facial do Morador</h3>
+<h3>Cadastro Facial do Morador</h3>
 
-  <div class="lgpd" id="lgpdBox">
-    Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema de controle de acesso do condomínio.
-    <br><br>
-    <button onclick="aceitarLGPD()">OK</button>
+<div class="lgpd" id="lgpdBox">
+  Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema de controle de acesso do condomínio.
+  <br><br>
+  <button onclick="aceitarLGPD()">OK</button>
+</div>
+
+<div id="formulario" style="display:none;">
+
+  <input id="nome" placeholder="Nome completo">
+  <input id="bloco" placeholder="Bloco">
+  <input id="apto" placeholder="Apartamento">
+
+  <div class="info" id="mensagem">
+    Posicione seu rosto dentro do oval.
   </div>
 
-  <div id="formulario" style="display:none;">
+  <div class="camera-container">
 
-    <input id="nome" placeholder="Nome completo">
-    <input id="bloco" placeholder="Bloco">
-    <input id="apto" placeholder="Apartamento">
+    <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
 
-    <div class="info" id="mensagem">
-      Posicione seu rosto dentro do oval.
-    </div>
+    <video id="video" autoplay playsinline></video>
+    <div class="face-oval"></div>
 
-    <div class="camera-container">
+  </div>
 
-      <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
+  <button onclick="capturar()">Capturar Foto</button>
 
-      <video id="video" autoplay playsinline></video>
-      <div class="face-oval"></div>
+  <canvas id="canvas" style="display:none;"></canvas>
 
-    </div>
-
+  <div id="preview" style="display:none;">
+    <h4>Prévia da Foto</h4>
+    <img id="fotoPreview">
     <br>
-    <button onclick="capturar()">Capturar</button>
-
-    <canvas id="canvas" style="display:none;"></canvas>
-
-    <div id="preview">
-      <h4>Prévia da Foto</h4>
-      <img id="fotoPreview" style="width:260px; border-radius:10px;">
-      <br><br>
-      <button onclick="enviar()">Finalizar</button>
-    </div>
-
-    <div id="status">Salvando dados, aguarde...</div>
-
+    <button onclick="enviar()">Finalizar</button>
   </div>
 
-  <script>
-    let stream;
-    let usandoFrontal = true;
+</div>
 
-    function aceitarLGPD() {
-      document.getElementById("lgpdBox").style.display = "none";
-      document.getElementById("formulario").style.display = "block";
-      iniciarCamera();
-    }
+<script>
+let usandoFrontal = true;
+let faceDetector;
+let lastDetection = null;
 
-    async function iniciarCamera() {
-      if (stream) stream.getTracks().forEach(t => t.stop());
+async function aceitarLGPD() {
+  document.getElementById("lgpdBox").style.display = "none";
+  document.getElementById("formulario").style.display = "block";
+  iniciarCamera();
+  iniciarDeteccao();
+}
 
-      const constraints = {
-        video: { facingMode: usandoFrontal ? "user" : "environment" }
-      };
+async function iniciarCamera() {
+  const video = document.getElementById("video");
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: usandoFrontal ? "user" : "environment" }
+  });
+  video.srcObject = stream;
+}
 
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      document.getElementById("video").srcObject = stream;
-    }
+function trocarCamera() {
+  usandoFrontal = !usandoFrontal;
+  iniciarCamera();
+}
 
-    function trocarCamera() {
-      usandoFrontal = !usandoFrontal;
-      iniciarCamera();
-    }
+function iniciarDeteccao() {
+  faceDetector = new FaceDetection.FaceDetection({
+    locateFile: (file) => 
+      `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+  });
 
-    function capturar() {
-      const video = document.getElementById("video");
-      const canvas = document.getElementById("canvas");
+  faceDetector.setOptions({
+    model: "short",
+    minDetectionConfidence: 0.6
+  });
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext("2d").drawImage(video, 0, 0);
-
-      // Verificação de brilho (qualidade básica)
-      const imgData = canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height);
-      let brilho = 0;
-      for (let i = 0; i < imgData.data.length; i += 4) {
-        brilho += (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-      }
-      brilho = brilho / (imgData.data.length / 4);
-
-      if (brilho < 60) {
-        alert("Imagem muito escura. Melhore a iluminação.");
-        return;
-      }
-
-      // Verificação de posição do rosto (simples)
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      if (cy < canvas.height * 0.3 || cy > canvas.height * 0.7) {
-        alert("Posicione melhor o rosto dentro do oval.");
-        return;
-      }
-
-      const img = canvas.toDataURL("image/jpeg");
-      document.getElementById("fotoPreview").src = img;
-      document.getElementById("preview").style.display = "block";
-
+  faceDetector.onResults(results => {
+    if (results.detections.length > 0) {
+      lastDetection = results.detections[0];
       document.getElementById("mensagem").innerText =
-        "Confira a foto antes de finalizar.";
+        "Rosto detectado. Mantenha dentro do oval.";
+    } else {
+      lastDetection = null;
+      document.getElementById("mensagem").innerText =
+        "Nenhum rosto detectado.";
     }
+  });
+
+  const camera = new Camera(document.getElementById("video"), {
+    onFrame: async () => {
+      await faceDetector.send({image: video});
+    },
+    width: 320,
+    height: 480
+  });
+  camera.start();
+}
+
+function capturar() {
+  if (!lastDetection) {
+    alert("Rosto não detectado.");
+    return;
+  }
+
+  const box = lastDetection.boundingBox;
+  const cx = box.xCenter;
+  const cy = box.yCenter;
+
+  if (cx < 0.35 || cx > 0.65 || cy < 0.25 || cy > 0.75) {
+    alert("Posicione o rosto dentro do oval.");
+    return;
+  }
+
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0);
+
+  const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  let brilho = 0;
+
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    brilho += (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
+  }
+
+  brilho /= (imgData.data.length / 4);
+
+  if (brilho < 70) {
+    alert("Imagem muito escura. Melhore a iluminação.");
+    return;
+  }
+
+  document.getElementById("fotoPreview").src = canvas.toDataURL("image/jpeg");
+  document.getElementById("preview").style.display = "block";
+}
 
     function enviar() {
       const nome = document.getElementById("nome").value;
@@ -244,8 +274,7 @@
         location.reload();
       }, 5000);
     }
-  </script>
+</script>
 
 </body>
 </html>
-
