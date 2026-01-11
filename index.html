@@ -1,47 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Cadastro Facial - Condomínio</title>
+
   <style>
-    body { font-family: Arial; text-align: center; background: #f2f2f2; }
-    input, button { width: 90%; padding: 12px; margin: 8px; font-size: 16px; }
-    video, canvas { width: 90%; border-radius: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      text-align: center;
+      padding: 10px;
+    }
+
+    img.logo {
+      max-width: 180px;
+      margin: 10px auto;
+    }
+
+    input, button {
+      width: 90%;
+      padding: 12px;
+      margin: 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    video, canvas {
+      width: 90%;
+      max-width: 400px;
+      border-radius: 10px;
+    }
+
+    .camera-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .face-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 220px;
+      height: 220px;
+      border: 3px solid #00ff00;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    #preview {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .info {
+      background: #e0f0ff;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
+
 <body>
+
+  <!-- LOGO -->
+  <img src="logo.png" class="logo" alt="Logo do Condomínio">
 
   <h2>Cadastro Facial do Morador</h2>
 
+  <!-- DADOS -->
   <input id="nome" placeholder="Nome completo">
   <input id="bloco" placeholder="Bloco">
   <input id="apto" placeholder="Apartamento">
 
-  <video id="video" autoplay></video>
+  <!-- MENSAGEM -->
+  <div class="info" id="mensagem">
+    Clique em "Ativar Câmera", posicione seu rosto dentro do círculo e depois clique em "Capturar Foto".
+  </div>
+
+  <!-- CAMERA -->
+  <div class="camera-container">
+    <video id="video" autoplay playsinline></video>
+    <div class="face-circle"></div>
+  </div>
+
   <canvas id="canvas" style="display:none;"></canvas>
 
+  <!-- BOTÕES -->
   <button onclick="iniciarCamera()">Ativar Câmera</button>
+  <button onclick="trocarCamera()">Trocar Câmera</button>
   <button onclick="capturar()">Capturar Foto</button>
-  <button onclick="enviar()">Finalizar Cadastro</button>
+
+  <!-- PRÉVIA -->
+  <div id="preview">
+    <h3>Prévia da Foto</h3>
+    <img id="fotoPreview" style="width:90%; max-width:300px; border-radius:10px;">
+    <br>
+    <button onclick="enviar()">Finalizar Cadastro</button>
+  </div>
 
   <script>
     let stream;
+    let usandoFrontal = true;
 
-    function iniciarCamera() {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(s => {
-          stream = s;
-          document.getElementById("video").srcObject = s;
-        });
+    async function iniciarCamera() {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+
+      const constraints = {
+        video: { facingMode: usandoFrontal ? "user" : "environment" }
+      };
+
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      document.getElementById("video").srcObject = stream;
+
+      document.getElementById("mensagem").innerText =
+        "Posicione seu rosto dentro do círculo e clique em 'Capturar Foto'.";
+    }
+
+    function trocarCamera() {
+      usandoFrontal = !usandoFrontal;
+      iniciarCamera();
     }
 
     function capturar() {
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+
       canvas.getContext("2d").drawImage(video, 0, 0);
-      alert("Foto capturada!");
+
+      const img = canvas.toDataURL("image/jpeg");
+
+      document.getElementById("fotoPreview").src = img;
+      document.getElementById("preview").style.display = "block";
+
+      document.getElementById("mensagem").innerText =
+        "Confira a foto. Se estiver boa, clique em 'Finalizar Cadastro'.";
     }
 
     function enviar() {
@@ -61,6 +167,7 @@
         body: JSON.stringify({ nome, bloco, apto, img })
       }).then(() => {
         alert("Cadastro realizado com sucesso!");
+        location.reload();
       });
     }
   </script>
