@@ -91,9 +91,23 @@
     max-width: 320px;
   }
 
-  #preview img {
+  .preview-box {
     width: 90vw;
     max-width: 320px;
+    height: 240px;
+    margin: 10px auto;
+    border: 2px dashed #999;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+  }
+
+  .preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     border-radius: 12px;
   }
 
@@ -138,14 +152,14 @@
 
   <button onclick="capturar()">Capturar Foto</button>
 
-  <canvas id="canvas" style="display:none;"></canvas>
-
-  <div id="preview" style="display:none;">
-    <h4>Prévia da Foto</h4>
-    <img id="fotoPreview">
-    <br>
-    <button onclick="enviar()">Finalizar</button>
+  <!-- Quadro reservado para a foto -->
+  <div class="preview-box">
+    <img id="fotoPreview" src="" alt="Prévia da foto">
   </div>
+
+  <button onclick="enviar()">Finalizar</button>
+
+  <canvas id="canvas" style="display:none;"></canvas>
 
   <div id="status" style="display:none; font-weight:bold; color:green;">
     Salvando dados, aguarde...
@@ -226,10 +240,8 @@ function capturar() {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0);
 
-  document.getElementById("fotoPreview").src =
-    canvas.toDataURL("image/jpeg");
-
-  document.getElementById("preview").style.display = "block";
+  const img = canvas.toDataURL("image/jpeg");
+  document.getElementById("fotoPreview").src = img;
 }
 
 function enviar() {
@@ -243,6 +255,11 @@ function enviar() {
   }
 
   const img = document.getElementById("canvas").toDataURL("image/jpeg");
+
+  if (!img) {
+    alert("Capture a foto antes de finalizar.");
+    return;
+  }
 
   document.getElementById("status").style.display = "block";
 
