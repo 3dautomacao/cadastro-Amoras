@@ -73,11 +73,11 @@
 
   .btn-trocar {
     position: absolute;
-    top: 8px;
+    top: 1px;
     left: 50%;
     transform: translateX(-50%);
-    width: 70%;
-    background: rgba(0,0,0,0.7);
+    width: 50%;
+    background: rgba(255,0,0,0.7);
     z-index: 10;
   }
 
@@ -144,7 +144,7 @@
   </div>
 
   <div class="camera-container">
-    <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
+    <button class="btn-trocar" onclick="trocarCamera()">Inverter Câmera</button>
     <video id="video" autoplay playsinline></video>
     <div class="face-oval"></div>
   </div>
@@ -194,7 +194,7 @@ async function iniciarCamera() {
   } else {
     rostoDetectado = true; // libera captura na traseira
     document.getElementById("mensagem").innerText =
-      "Posicione o rosto no oval e capture a foto, Sem oculos e Não sorria.";
+      "Posicione o rosto no oval verde, SEM OCULOS E NAO SORRIA.";
   }
 }
 
@@ -299,6 +299,7 @@ function enviar() {
 
 </body>
 </html>
+
 
 
 
