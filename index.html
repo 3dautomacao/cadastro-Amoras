@@ -3,111 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Cadastro Facial</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  text-align: center;
-  margin: 0;
-  padding: 8px;
-}
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    text-align: center;
+    margin: 0;
+    padding: 10px;
+  }
 
-img.logo {
-  width: 90vw;
-  max-width: 360px;
-  margin: 5px auto;
-}
+  img.logo {
+    width: 80vw;
+    max-width: 320px;
+    margin: 10px auto;
+  }
 
-input {
-  width: 90vw;
-  max-width: 320px;
-  padding: 8px;
-  margin: 5px auto;
-  font-size: 15px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  display: block;
-}
+  input {
+    width: 90vw;
+    max-width: 320px;
+    padding: 10px;
+    margin: 6px auto;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    display: block;
+  }
 
-button {
-  width: 80vw;
-  max-width: 300px;
-  padding: 10px;
-  margin: 6px;
-  font-size: 15px;
-  border-radius: 8px;
-  border: none;
-  background: #0066cc;
-  color: white;
-  cursor: pointer;
-}
+  button {
+    width: 60vw;
+    max-width: 220px;
+    padding: 10px;
+    margin: 8px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: none;
+    background: #0066cc;
+    color: white;
+    cursor: pointer;
+  }
 
-.camera-container {
-  position: relative;
-  width: 90vw;
-  max-width: 320px;
-  margin: auto;
-}
+  .camera-container {
+    position: relative;
+    width: 90vw;
+    max-width: 320px;
+    margin: auto;
+  }
 
-video {
-  width: 100%;
-  border-radius: 12px;
-}
+  video {
+    width: 100%;
+    border-radius: 12px;
+  }
 
-.face-oval {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 70%;
-  height: 90%;
-  border: 3px solid #00ff00;
-  border-radius: 50% / 60%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
+  .face-oval {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 90%;
+    border: 3px solid #00ff00;
+    border-radius: 50% / 60%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
 
-.btn-trocar {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 70%;
-  background: rgba(0,0,0,0.7);
-  z-index: 10;
-}
+  .btn-trocar {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10;
+  }
 
-.info {
-  background: #e0f0ff;
-  padding: 8px;
-  border-radius: 8px;
-  margin: 8px auto;
-  font-size: 14px;
-  max-width: 320px;
-}
+  .info {
+    background: #e0f0ff;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px auto;
+    font-size: 14px;
+    max-width: 320px;
+  }
 
-#preview img {
-  width: 90vw;
-  max-width: 320px;
-  border-radius: 12px;
-}
+  .lgpd {
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    max-width: 320px;
+    margin: auto;
+  }
 
-.lgpd {
-  background: #fff3cd;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  max-width: 320px;
-  margin: auto;
-}
+  /* MODO PREVIEW */
+  #preview {
+    display: none;
+  }
 
-.hidden {
-  display: none;
-}
+  #preview img {
+    width: 90vw;
+    max-width: 320px;
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+
+  .preview-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .preview-layout button {
+    width: 80%;
+  }
 </style>
 </head>
 
@@ -115,15 +128,15 @@ video {
 
 <img src="logo.png" class="logo">
 
-<h3>Cadastro Facial</h3>
+<h3>Cadastro Facial do Morador</h3>
 
 <div class="lgpd" id="lgpdBox">
-  Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema do condomínio.
+  Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema de controle de acesso do condomínio.
   <br><br>
   <button onclick="aceitarLGPD()">OK</button>
 </div>
 
-<div id="formulario" class="hidden">
+<div id="formulario" style="display:none;">
 
   <input id="nome" placeholder="Nome completo">
   <input id="bloco" placeholder="Bloco">
@@ -133,21 +146,23 @@ video {
     Posicione seu rosto dentro do oval.
   </div>
 
-  <div class="camera-container" id="cameraArea">
+  <div class="camera-container" id="cameraBox">
+
     <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
+
     <video id="video" autoplay playsinline></video>
     <div class="face-oval"></div>
+
   </div>
 
-  <button id="btnCapturar" onclick="capturar()">Capturar Foto</button>
+  <button onclick="capturar()" id="btnCapturar">Capturar Foto</button>
 
-  <canvas id="canvas" class="hidden"></canvas>
+  <canvas id="canvas" style="display:none;"></canvas>
 
-  <div id="preview" class="hidden">
+  <div id="preview" class="preview-layout">
     <h4>Prévia da Foto</h4>
     <img id="fotoPreview">
-    <br>
-    <button onclick="voltarCamera()">Refazer foto</button>
+    <button onclick="refazer()">Refazer Foto</button>
     <button onclick="enviar()">Finalizar</button>
   </div>
 
@@ -157,24 +172,20 @@ video {
 let usandoFrontal = true;
 let faceDetector;
 let lastDetection = null;
-let cameraInstance;
+let camera;
 
 async function aceitarLGPD() {
-  document.getElementById("lgpdBox").classList.add("hidden");
-  document.getElementById("formulario").classList.remove("hidden");
+  document.getElementById("lgpdBox").style.display = "none";
+  document.getElementById("formulario").style.display = "block";
   iniciarCamera();
   iniciarDeteccao();
 }
 
 async function iniciarCamera() {
   const video = document.getElementById("video");
-
-  if (cameraInstance) cameraInstance.stop();
-
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
-
   video.srcObject = stream;
 }
 
@@ -206,15 +217,15 @@ function iniciarDeteccao() {
     }
   });
 
-  cameraInstance = new Camera(document.getElementById("video"), {
+  camera = new Camera(document.getElementById("video"), {
     onFrame: async () => {
-      await faceDetector.send({ image: video });
+      await faceDetector.send({image: video});
     },
     width: 320,
     height: 480
   });
 
-  cameraInstance.start();
+  camera.start();
 }
 
 function capturar() {
@@ -240,18 +251,34 @@ function capturar() {
   const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0);
 
+  const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  let brilho = 0;
+
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    brilho += (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
+  }
+
+  brilho /= (imgData.data.length / 4);
+
+  if (brilho < 70) {
+    alert("Imagem muito escura. Melhore a iluminação.");
+    return;
+  }
+
   document.getElementById("fotoPreview").src = canvas.toDataURL("image/jpeg");
 
-  // Reorganiza layout
-  document.getElementById("cameraArea").classList.add("hidden");
-  document.getElementById("btnCapturar").classList.add("hidden");
-  document.getElementById("preview").classList.remove("hidden");
+  // REORGANIZA LAYOUT
+  document.getElementById("cameraBox").style.display = "none";
+  document.getElementById("btnCapturar").style.display = "none";
+  document.getElementById("preview").style.display = "flex";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function voltarCamera() {
-  document.getElementById("preview").classList.add("hidden");
-  document.getElementById("cameraArea").classList.remove("hidden");
-  document.getElementById("btnCapturar").classList.remove("hidden");
+function refazer() {
+  document.getElementById("preview").style.display = "none";
+  document.getElementById("cameraBox").style.display = "block";
+  document.getElementById("btnCapturar").style.display = "inline-block";
 }
 
 function enviar() {
