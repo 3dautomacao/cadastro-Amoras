@@ -13,29 +13,34 @@
     }
 
     img.logo {
-      max-width: 180px;
+      max-width: 160px;
       margin: 10px auto;
     }
 
-    input, button {
-      width: 90%;
-      padding: 12px;
-      margin: 8px;
-      font-size: 16px;
-      border-radius: 8px;
+    input {
+      width: 45%;
+      padding: 8px;
+      margin: 6px;
+      font-size: 14px;
+      border-radius: 6px;
       border: 1px solid #ccc;
     }
 
     button {
+      width: 22%;
+      padding: 8px;
+      margin: 6px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
       background: #0066cc;
       color: white;
-      border: none;
       cursor: pointer;
     }
 
     video, canvas {
       width: 90%;
-      max-width: 400px;
+      max-width: 380px;
       border-radius: 10px;
     }
 
@@ -44,29 +49,41 @@
       display: inline-block;
     }
 
-    .face-circle {
+    .face-oval {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 220px;
-      height: 220px;
+      width: 110px;
+      height: 160px;
       border: 3px solid #00ff00;
-      border-radius: 50%;
+      border-radius: 50% / 60%;
       transform: translate(-50%, -50%);
       pointer-events: none;
+    }
+
+    .info {
+      background: #e0f0ff;
+      padding: 8px;
+      border-radius: 6px;
+      margin: 8px auto;
+      font-size: 13px;
+      width: 90%;
+      max-width: 380px;
+    }
+
+    .lgpd {
+      background: #fff3cd;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px auto;
+      font-size: 13px;
+      width: 90%;
+      max-width: 380px;
     }
 
     #preview {
       display: none;
       margin-top: 10px;
-    }
-
-    .info {
-      background: #e0f0ff;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 10px;
-      font-size: 14px;
     }
   </style>
 </head>
@@ -76,42 +93,56 @@
   <!-- LOGO -->
   <img src="logo.png" class="logo" alt="Logo do Condomínio">
 
-  <h2>Cadastro Facial do Morador</h2>
+  <h3>Cadastro Facial do Morador</h3>
+
+  <!-- LGPD -->
+  <div class="lgpd" id="lgpdBox">
+    Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema de controle de acesso no condomínio.
+    <br><br>
+    <button onclick="aceitarLGPD()">OK</button>
+  </div>
 
   <!-- DADOS -->
-  <input id="nome" placeholder="Nome completo">
-  <input id="bloco" placeholder="Bloco">
-  <input id="apto" placeholder="Apartamento">
+  <div id="formulario" style="display:none;">
+    <input id="nome" placeholder="Nome completo">
+    <input id="bloco" placeholder="Bloco">
+    <input id="apto" placeholder="Apartamento">
 
-  <!-- MENSAGEM -->
-  <div class="info" id="mensagem">
-    Clique em "Ativar Câmera", posicione seu rosto dentro do círculo e depois clique em "Capturar Foto".
-  </div>
+    <div class="info" id="mensagem">
+      Posicione seu rosto dentro do oval e clique em "Capturar Foto".
+    </div>
 
-  <!-- CAMERA -->
-  <div class="camera-container">
-    <video id="video" autoplay playsinline></video>
-    <div class="face-circle"></div>
-  </div>
+    <!-- CAMERA -->
+    <div class="camera-container">
+      <video id="video" autoplay playsinline></video>
+      <div class="face-oval"></div>
+    </div>
 
-  <canvas id="canvas" style="display:none;"></canvas>
+    <canvas id="canvas" style="display:none;"></canvas>
 
-  <!-- BOTÕES -->
-  <button onclick="iniciarCamera()">Ativar Câmera</button>
-  <button onclick="trocarCamera()">Trocar Câmera</button>
-  <button onclick="capturar()">Capturar Foto</button>
-
-  <!-- PRÉVIA -->
-  <div id="preview">
-    <h3>Prévia da Foto</h3>
-    <img id="fotoPreview" style="width:90%; max-width:300px; border-radius:10px;">
+    <!-- BOTÕES -->
     <br>
-    <button onclick="enviar()">Finalizar Cadastro</button>
+    <button onclick="trocarCamera()">Trocar</button>
+    <button onclick="capturar()">Capturar</button>
+
+    <!-- PRÉVIA -->
+    <div id="preview">
+      <h4>Prévia da Foto</h4>
+      <img id="fotoPreview" style="width:90%; max-width:260px; border-radius:10px;">
+      <br>
+      <button onclick="enviar()">Finalizar</button>
+    </div>
   </div>
 
   <script>
     let stream;
     let usandoFrontal = true;
+
+    function aceitarLGPD() {
+      document.getElementById("lgpdBox").style.display = "none";
+      document.getElementById("formulario").style.display = "block";
+      iniciarCamera();
+    }
 
     async function iniciarCamera() {
       if (stream) stream.getTracks().forEach(t => t.stop());
@@ -122,9 +153,6 @@
 
       stream = await navigator.mediaDevices.getUserMedia(constraints);
       document.getElementById("video").srcObject = stream;
-
-      document.getElementById("mensagem").innerText =
-        "Posicione seu rosto dentro do círculo e clique em 'Capturar Foto'.";
     }
 
     function trocarCamera() {
@@ -147,7 +175,7 @@
       document.getElementById("preview").style.display = "block";
 
       document.getElementById("mensagem").innerText =
-        "Confira a foto. Se estiver boa, clique em 'Finalizar Cadastro'.";
+        "Confira a foto. Se estiver boa, clique em 'Finalizar'.";
     }
 
     function enviar() {
