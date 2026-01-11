@@ -23,7 +23,7 @@
     margin: 5px auto;
   }
 
-  input {
+  input, select {
     width: 90vw;
     max-width: 320px;
     padding: 10px;
@@ -32,6 +32,17 @@
     border-radius: 6px;
     border: 1px solid #ccc;
     display: block;
+  }
+
+  .linha-select {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .linha-select select {
+    width: 43vw;
+    max-width: 155px;
   }
 
   button {
@@ -136,8 +147,29 @@
 <div id="formulario" style="display:none;">
 
   <input id="nome" placeholder="Nome completo">
-  <input id="bloco" placeholder="Bloco">
-  <input id="apto" placeholder="Apartamento">
+
+  <div class="linha-select">
+    <select id="bloco">
+      <option value="">Bloco</option>
+      <script>
+        for (let i = 1; i <= 24; i++) {
+          document.write(`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`);
+        }
+      </script>
+    </select>
+
+    <select id="apto">
+      <option value="">Apto</option>
+      <script>
+        [1,2,3,4,5].forEach(andar => {
+          for (let i = 1; i <= 4; i++) {
+            const apto = `${andar}0${i}`;
+            document.write(`<option value="${apto}">${apto}</option>`);
+          }
+        });
+      </script>
+    </select>
+  </div>
 
   <div class="info" id="mensagem">
     Posicione seu rosto dentro do oval.
@@ -178,9 +210,7 @@ function aceitarLGPD() {
 }
 
 async function iniciarCamera() {
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-  }
+  if (stream) stream.getTracks().forEach(t => t.stop());
 
   stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: usandoFrontal ? "user" : "environment" }
@@ -189,13 +219,8 @@ async function iniciarCamera() {
   const video = document.getElementById("video");
   video.srcObject = stream;
 
-  if (usandoFrontal) {
-    iniciarFaceMesh(video);
-  } else {
-    rostoDetectado = true; // libera captura na traseira
-    document.getElementById("mensagem").innerText =
-      "Posicione o rosto no oval e capture a foto.";
-  }
+  if (usandoFrontal) iniciarFaceMesh(video);
+  else rostoDetectado = true;
 }
 
 function trocarCamera() {
@@ -205,8 +230,7 @@ function trocarCamera() {
 
 function iniciarFaceMesh(video) {
   faceMesh = new FaceMesh({
-    locateFile: file =>
-      `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
   });
 
   faceMesh.setOptions({
@@ -216,15 +240,7 @@ function iniciarFaceMesh(video) {
   });
 
   faceMesh.onResults(results => {
-    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-      rostoDetectado = true;
-      document.getElementById("mensagem").innerText =
-        "Rosto detectado. Mantenha dentro do oval.";
-    } else {
-      rostoDetectado = false;
-      document.getElementById("mensagem").innerText =
-        "Centralize o rosto no oval.";
-    }
+    rostoDetectado = results.multiFaceLandmarks?.length > 0;
   });
 
   processarVideo(video);
@@ -232,77 +248,50 @@ function iniciarFaceMesh(video) {
 
 async function processarVideo(video) {
   if (!usandoFrontal) return;
-
   if (video.readyState >= 2) {
     const off = document.createElement("canvas");
     const ctx = off.getContext("2d");
-
     off.width = video.videoWidth;
     off.height = video.videoHeight;
-
     ctx.translate(off.width, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0);
-
     await faceMesh.send({ image: off });
   }
-
   requestAnimationFrame(() => processarVideo(video));
 }
 
 function capturar() {
-  if (!rostoDetectado) {
-    alert("Rosto não detectado. Centralize o rosto.");
-    return;
-  }
-
+  if (!rostoDetectado) return alert("Rosto não detectado.");
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
-
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-
   if (usandoFrontal) {
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
   }
-
   ctx.drawImage(video, 0, 0);
-
-  document.getElementById("fotoPreview").src =
-    canvas.toDataURL("image/jpeg");
+  document.getElementById("fotoPreview").src = canvas.toDataURL("image/jpeg");
 }
 
 function enviar() {
-  const nome = document.getElementById("nome").value;
-  const bloco = document.getElementById("bloco").value;
-  const apto = document.getElementById("apto").value;
-
-  if (!nome || !bloco || !apto) {
-    alert("Preencha todos os campos!");
-    return;
-  }
-
-  const img = document.getElementById("canvas").toDataURL("image/jpeg");
-
+  const nome = nomeInput.value;
+  const bloco = blocoSelect.value;
+  const apto = aptoSelect.value;
+  if (!nome || !bloco || !apto) return alert("Preencha todos os campos!");
   fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
     method: "POST",
-    body: JSON.stringify({ nome, bloco, apto, img })
+    body: JSON.stringify({ nome, bloco, apto, img: canvas.toDataURL("image/jpeg") })
   });
-
   setTimeout(() => location.reload(), 5000);
 }
+
+const nomeInput = document.getElementById("nome");
+const blocoSelect = document.getElementById("bloco");
+const aptoSelect = document.getElementById("apto");
 </script>
-
-
 
 </body>
 </html>
-
-
-
-
-
-
-
