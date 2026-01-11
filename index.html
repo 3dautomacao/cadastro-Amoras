@@ -6,7 +6,7 @@
 
 <title>Cadastro Facial</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
@@ -91,6 +91,12 @@
     max-width: 320px;
   }
 
+  #preview img {
+    width: 90vw;
+    max-width: 320px;
+    border-radius: 12px;
+  }
+
   .lgpd {
     background: #fff3cd;
     padding: 12px;
@@ -98,28 +104,6 @@
     font-size: 14px;
     max-width: 320px;
     margin: auto;
-  }
-
-  /* MODO PREVIEW */
-  #preview {
-    display: none;
-  }
-
-  #preview img {
-    width: 90vw;
-    max-width: 320px;
-    border-radius: 12px;
-    margin-top: 10px;
-  }
-
-  .preview-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .preview-layout button {
-    width: 80%;
   }
 </style>
 </head>
@@ -146,39 +130,37 @@
     Posicione seu rosto dentro do oval.
   </div>
 
-  <div class="camera-container" id="cameraBox">
-
+  <div class="camera-container">
     <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
-
     <video id="video" autoplay playsinline></video>
     <div class="face-oval"></div>
-
   </div>
 
-  <button onclick="capturar()" id="btnCapturar">Capturar Foto</button>
+  <button onclick="capturar()">Capturar Foto</button>
 
   <canvas id="canvas" style="display:none;"></canvas>
 
-  <div id="preview" class="preview-layout">
+  <div id="preview" style="display:none;">
     <h4>Prévia da Foto</h4>
     <img id="fotoPreview">
-    <button onclick="refazer()">Refazer Foto</button>
+    <br>
     <button onclick="enviar()">Finalizar</button>
+  </div>
+
+  <div id="status" style="display:none; font-weight:bold; color:green;">
+    Salvando dados, aguarde...
   </div>
 
 </div>
 
 <script>
 let usandoFrontal = true;
-let faceDetector;
-let lastDetection = null;
-let camera;
+let rostoDetectado = false;
 
-async function aceitarLGPD() {
+function aceitarLGPD() {
   document.getElementById("lgpdBox").style.display = "none";
   document.getElementById("formulario").style.display = "block";
   iniciarCamera();
-  iniciarDeteccao();
 }
 
 async function iniciarCamera() {
@@ -187,6 +169,7 @@ async function iniciarCamera() {
     video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
   video.srcObject = stream;
+  iniciarDeteccao(video);
 }
 
 function trocarCamera() {
@@ -194,32 +177,33 @@ function trocarCamera() {
   iniciarCamera();
 }
 
-function iniciarDeteccao() {
-  faceDetector = new FaceDetection.FaceDetection({
-    locateFile: (file) => 
-      `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+function iniciarDeteccao(video) {
+  const faceMesh = new FaceMesh({
+    locateFile: file =>
+      `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
   });
 
-  faceDetector.setOptions({
-    model: "short",
-    minDetectionConfidence: 0.6
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
   });
 
-  faceDetector.onResults(results => {
-    if (results.detections.length > 0) {
-      lastDetection = results.detections[0];
+  faceMesh.onResults(results => {
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      rostoDetectado = true;
       document.getElementById("mensagem").innerText =
         "Rosto detectado. Mantenha dentro do oval.";
     } else {
-      lastDetection = null;
+      rostoDetectado = false;
       document.getElementById("mensagem").innerText =
         "Nenhum rosto detectado.";
     }
   });
 
-  camera = new Camera(document.getElementById("video"), {
+  const camera = new Camera(video, {
     onFrame: async () => {
-      await faceDetector.send({image: video});
+      await faceMesh.send({ image: video });
     },
     width: 320,
     height: 480
@@ -229,56 +213,23 @@ function iniciarDeteccao() {
 }
 
 function capturar() {
-  if (!lastDetection) {
-    alert("Rosto não detectado.");
-    return;
-  }
-
-  const box = lastDetection.boundingBox;
-  const cx = box.xCenter;
-  const cy = box.yCenter;
-
-  if (cx < 0.35 || cx > 0.65 || cy < 0.25 || cy > 0.75) {
-    alert("Posicione o rosto dentro do oval.");
+  if (!rostoDetectado) {
+    alert("Rosto não detectado. Centralize o rosto.");
     return;
   }
 
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-
-  const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0);
 
-  const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
-  let brilho = 0;
+  document.getElementById("fotoPreview").src =
+    canvas.toDataURL("image/jpeg");
 
-  for (let i = 0; i < imgData.data.length; i += 4) {
-    brilho += (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-  }
-
-  brilho /= (imgData.data.length / 4);
-
-  if (brilho < 70) {
-    alert("Imagem muito escura. Melhore a iluminação.");
-    return;
-  }
-
-  document.getElementById("fotoPreview").src = canvas.toDataURL("image/jpeg");
-
-  // REORGANIZA LAYOUT
-  document.getElementById("cameraBox").style.display = "none";
-  document.getElementById("btnCapturar").style.display = "none";
-  document.getElementById("preview").style.display = "flex";
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function refazer() {
-  document.getElementById("preview").style.display = "none";
-  document.getElementById("cameraBox").style.display = "block";
-  document.getElementById("btnCapturar").style.display = "inline-block";
+  document.getElementById("preview").style.display = "block";
 }
 
 function enviar() {
@@ -293,7 +244,7 @@ function enviar() {
 
   const img = document.getElementById("canvas").toDataURL("image/jpeg");
 
-  alert("Salvando dados, aguarde...");
+  document.getElementById("status").style.display = "block";
 
   fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
     method: "POST",
