@@ -19,8 +19,8 @@
   }
 
   img.logo {
-    width: 80vw;
-    max-width: 320px;
+    width: 40vw;
+    max-width: 160px;
     margin: 10px auto;
   }
 
@@ -152,7 +152,6 @@
 
   <button onclick="capturar()">Capturar Foto</button>
 
-  <!-- Quadro reservado para a foto -->
   <div class="preview-box">
     <img id="fotoPreview" src="" alt="Prévia da foto">
   </div>
@@ -170,6 +169,7 @@
 <script>
 let usandoFrontal = true;
 let rostoDetectado = false;
+let streamAtual = null;
 
 function aceitarLGPD() {
   document.getElementById("lgpdBox").style.display = "none";
@@ -179,10 +179,19 @@ function aceitarLGPD() {
 
 async function iniciarCamera() {
   const video = document.getElementById("video");
+
+  // Para a câmera anterior
+  if (streamAtual) {
+    streamAtual.getTracks().forEach(track => track.stop());
+  }
+
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
+
+  streamAtual = stream;
   video.srcObject = stream;
+
   iniciarDeteccao(video);
 }
 
