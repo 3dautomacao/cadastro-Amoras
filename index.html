@@ -13,7 +13,7 @@
     }
 
     img.logo {
-      max-width: 320px;   /* 2x maior */
+      max-width: 320px;
       margin: 10px auto;
     }
 
@@ -45,24 +45,18 @@
       border-radius: 10px;
     }
 
-    .camera-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
     .camera-container {
       position: relative;
       display: inline-block;
     }
 
+    /* OVAL 2x MAIOR */
     .face-oval {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 110px;
-      height: 160px;
+      width: 220px;   /* 2x */
+      height: 320px; /* 2x */
       border: 3px solid #00ff00;
       border-radius: 50% / 60%;
       transform: translate(-50%, -50%);
@@ -120,7 +114,6 @@
   <!-- FORMULÁRIO -->
   <div id="formulario" style="display:none;">
 
-    <!-- TEXTBOX EM COLUNA -->
     <input id="nome" placeholder="Nome completo">
     <input id="bloco" placeholder="Bloco">
     <input id="apto" placeholder="Apartamento">
@@ -129,20 +122,20 @@
       Posicione seu rosto dentro do oval e clique em "Capturar Foto".
     </div>
 
-    <!-- CÂMERA + BOTÃO AO LADO -->
-    <div class="camera-wrapper">
-      <div class="camera-container">
-        <video id="video" autoplay playsinline></video>
-        <div class="face-oval"></div>
-      </div>
+    <!-- BOTÃO TROCAR ACIMA -->
+    <button onclick="trocarCamera()">Trocar câmera</button>
 
-      <button onclick="trocarCamera()">Trocar</button>
+    <!-- CÂMERA -->
+    <div class="camera-container">
+      <video id="video" autoplay playsinline></video>
+      <div class="face-oval"></div>
     </div>
 
-    <canvas id="canvas" style="display:none;"></canvas>
-
+    <!-- BOTÃO CAPTURAR ABAIXO -->
     <br>
     <button onclick="capturar()">Capturar</button>
+
+    <canvas id="canvas" style="display:none;"></canvas>
 
     <!-- PRÉVIA -->
     <div id="preview">
