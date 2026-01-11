@@ -6,7 +6,7 @@
 
 <title>Cadastro Facial</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
@@ -131,12 +131,9 @@
   </div>
 
   <div class="camera-container">
-
     <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
-
     <video id="video" autoplay playsinline></video>
     <div class="face-oval"></div>
-
   </div>
 
   <button onclick="capturar()">Capturar Foto</button>
@@ -150,18 +147,20 @@
     <button onclick="enviar()">Finalizar</button>
   </div>
 
+  <div id="status" style="display:none; font-weight:bold; color:green;">
+    Salvando dados, aguarde...
+  </div>
+
 </div>
 
 <script>
 let usandoFrontal = true;
-let faceDetector;
-let lastDetection = null;
+let rostoDetectado = false;
 
-async function aceitarLGPD() {
+function aceitarLGPD() {
   document.getElementById("lgpdBox").style.display = "none";
   document.getElementById("formulario").style.display = "block";
   iniciarCamera();
-  iniciarDeteccao();
 }
 
 async function iniciarCamera() {
@@ -170,6 +169,7 @@ async function iniciarCamera() {
     video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
   video.srcObject = stream;
+  iniciarDeteccao(video);
 }
 
 function trocarCamera() {
@@ -177,103 +177,84 @@ function trocarCamera() {
   iniciarCamera();
 }
 
-function iniciarDeteccao() {
-  faceDetector = new FaceDetection.FaceDetection({
-    locateFile: (file) => 
-      `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+function iniciarDeteccao(video) {
+  const faceMesh = new FaceMesh({
+    locateFile: file =>
+      `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
   });
 
-  faceDetector.setOptions({
-    model: "short",
-    minDetectionConfidence: 0.6
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
   });
 
-  faceDetector.onResults(results => {
-    if (results.detections.length > 0) {
-      lastDetection = results.detections[0];
+  faceMesh.onResults(results => {
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      rostoDetectado = true;
       document.getElementById("mensagem").innerText =
         "Rosto detectado. Mantenha dentro do oval.";
     } else {
-      lastDetection = null;
+      rostoDetectado = false;
       document.getElementById("mensagem").innerText =
         "Nenhum rosto detectado.";
     }
   });
 
-  const camera = new Camera(document.getElementById("video"), {
+  const camera = new Camera(video, {
     onFrame: async () => {
-      await faceDetector.send({image: video});
+      await faceMesh.send({ image: video });
     },
     width: 320,
     height: 480
   });
+
   camera.start();
 }
 
 function capturar() {
-  if (!lastDetection) {
-    alert("Rosto não detectado.");
-    return;
-  }
-
-  const box = lastDetection.boundingBox;
-  const cx = box.xCenter;
-  const cy = box.yCenter;
-
-  if (cx < 0.35 || cx > 0.65 || cy < 0.25 || cy > 0.75) {
-    alert("Posicione o rosto dentro do oval.");
+  if (!rostoDetectado) {
+    alert("Rosto não detectado. Centralize o rosto.");
     return;
   }
 
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-
-  const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0);
 
-  const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
-  let brilho = 0;
+  document.getElementById("fotoPreview").src =
+    canvas.toDataURL("image/jpeg");
 
-  for (let i = 0; i < imgData.data.length; i += 4) {
-    brilho += (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-  }
-
-  brilho /= (imgData.data.length / 4);
-
-  if (brilho < 70) {
-    alert("Imagem muito escura. Melhore a iluminação.");
-    return;
-  }
-
-  document.getElementById("fotoPreview").src = canvas.toDataURL("image/jpeg");
   document.getElementById("preview").style.display = "block";
 }
 
-    function enviar() {
-      const nome = document.getElementById("nome").value;
-      const bloco = document.getElementById("bloco").value;
-      const apto = document.getElementById("apto").value;
+function enviar() {
+  const nome = document.getElementById("nome").value;
+  const bloco = document.getElementById("bloco").value;
+  const apto = document.getElementById("apto").value;
 
-      if (!nome || !bloco || !apto) {
-        alert("Preencha todos os campos!");
-        return;
-      }
+  if (!nome || !bloco || !apto) {
+    alert("Preencha todos os campos!");
+    return;
+  }
 
-      const img = document.getElementById("canvas").toDataURL("image/jpeg");
+  const img = document.getElementById("canvas").toDataURL("image/jpeg");
 
-      document.getElementById("status").style.display = "block";
+  document.getElementById("status").style.display = "block";
 
-      fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
-        method: "POST",
-        body: JSON.stringify({ nome, bloco, apto, img })
-      });
+  fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
+    method: "POST",
+    body: JSON.stringify({ nome, bloco, apto, img })
+  });
 
-      setTimeout(() => {
-        location.reload();
-      }, 5000);
-    }
+  setTimeout(() => {
+    location.reload();
+  }, 5000);
+}
 </script>
 
 </body>
