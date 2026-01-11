@@ -183,15 +183,19 @@ async function iniciarCamera() {
   }
 
   stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: usandoFrontal ? "user" : "environment"
-    }
+    video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
 
   const video = document.getElementById("video");
   video.srcObject = stream;
 
-  iniciarFaceMesh(video);
+  if (usandoFrontal) {
+    iniciarFaceMesh(video);
+  } else {
+    rostoDetectado = true; // libera captura na traseira
+    document.getElementById("mensagem").innerText =
+      "Posicione o rosto no oval e capture a foto.";
+  }
 }
 
 function trocarCamera() {
@@ -219,7 +223,7 @@ function iniciarFaceMesh(video) {
     } else {
       rostoDetectado = false;
       document.getElementById("mensagem").innerText =
-        "Nenhum rosto detectado.";
+        "Centralize o rosto no oval.";
     }
   });
 
@@ -227,22 +231,18 @@ function iniciarFaceMesh(video) {
 }
 
 async function processarVideo(video) {
-  if (video.readyState >= 2) {
+  if (!usandoFrontal) return;
 
-    // 🔁 Cria um canvas auxiliar para corrigir orientação
+  if (video.readyState >= 2) {
     const off = document.createElement("canvas");
     const ctx = off.getContext("2d");
 
     off.width = video.videoWidth;
     off.height = video.videoHeight;
 
-    if (usandoFrontal) {
-      // Espelha para câmera frontal
-      ctx.translate(off.width, 0);
-      ctx.scale(-1, 1);
-    }
-
-    ctx.drawImage(video, 0, 0, off.width, off.height);
+    ctx.translate(off.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
 
     await faceMesh.send({ image: off });
   }
@@ -286,13 +286,6 @@ function enviar() {
 
   const img = document.getElementById("canvas").toDataURL("image/jpeg");
 
-  if (!img || img.length < 100) {
-    alert("Capture a foto antes de finalizar.");
-    return;
-  }
-
-  document.getElementById("status").style.display = "block";
-
   fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
     method: "POST",
     body: JSON.stringify({ nome, bloco, apto, img })
@@ -303,6 +296,8 @@ function enviar() {
 </script>
 
 
+
 </body>
 </html>
+
 
