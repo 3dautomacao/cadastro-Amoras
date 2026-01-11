@@ -18,8 +18,8 @@
   }
 
   img.logo {
-    width: 40vw;
-    max-width: 160px;
+    width: 80vw;
+    max-width: 320px;
     margin: 10px auto;
   }
 
@@ -81,6 +81,15 @@
     z-index: 10;
   }
 
+  .info {
+    background: #e0f0ff;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px auto;
+    font-size: 14px;
+    max-width: 320px;
+  }
+
   .preview-box {
     width: 90vw;
     max-width: 320px;
@@ -130,6 +139,10 @@
   <input id="bloco" placeholder="Bloco">
   <input id="apto" placeholder="Apartamento">
 
+  <div class="info" id="mensagem">
+    Posicione seu rosto dentro do oval.
+  </div>
+
   <div class="camera-container">
     <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
     <video id="video" autoplay playsinline></video>
@@ -139,7 +152,7 @@
   <button onclick="capturar()">Capturar Foto</button>
 
   <div class="preview-box">
-    <img id="fotoPreview">
+    <img id="fotoPreview" src="">
   </div>
 
   <button onclick="enviar()">Finalizar</button>
@@ -154,29 +167,29 @@
 
 <script>
 let usandoFrontal = true;
-let streamAtual = null;
-let faceMesh;
+let rostoDetectado = false;
+let stream = null;
+let faceMesh = null;
 
 function aceitarLGPD() {
   document.getElementById("lgpdBox").style.display = "none";
   document.getElementById("formulario").style.display = "block";
   iniciarCamera();
-  iniciarFaceMesh();
 }
 
 async function iniciarCamera() {
-  const video = document.getElementById("video");
-
-  if (streamAtual) {
-    streamAtual.getTracks().forEach(track => track.stop());
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
   }
 
-  const stream = await navigator.mediaDevices.getUserMedia({
+  stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
 
-  streamAtual = stream;
+  const video = document.getElementById("video");
   video.srcObject = stream;
+
+  iniciarFaceMesh(video);
 }
 
 function trocarCamera() {
@@ -184,7 +197,7 @@ function trocarCamera() {
   iniciarCamera();
 }
 
-function iniciarFaceMesh() {
+function iniciarFaceMesh(video) {
   faceMesh = new FaceMesh({
     locateFile: file =>
       `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
@@ -196,17 +209,34 @@ function iniciarFaceMesh() {
     minTrackingConfidence: 0.5
   });
 
-  const video = document.getElementById("video");
+  faceMesh.onResults(results => {
+    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+      rostoDetectado = true;
+      document.getElementById("mensagem").innerText =
+        "Rosto detectado. Mantenha dentro do oval.";
+    } else {
+      rostoDetectado = false;
+      document.getElementById("mensagem").innerText =
+        "Nenhum rosto detectado.";
+    }
+  });
 
-  async function detectar() {
+  processarVideo(video);
+}
+
+async function processarVideo(video) {
+  if (video.readyState >= 2) {
     await faceMesh.send({ image: video });
-    requestAnimationFrame(detectar);
   }
-
-  detectar();
+  requestAnimationFrame(() => processarVideo(video));
 }
 
 function capturar() {
+  if (!rostoDetectado) {
+    alert("Rosto não detectado. Centralize o rosto.");
+    return;
+  }
+
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
@@ -215,8 +245,8 @@ function capturar() {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0);
 
-  document.getElementById("fotoPreview").src =
-    canvas.toDataURL("image/jpeg");
+  const img = canvas.toDataURL("image/jpeg");
+  document.getElementById("fotoPreview").src = img;
 }
 
 function enviar() {
@@ -231,6 +261,11 @@ function enviar() {
 
   const img = document.getElementById("canvas").toDataURL("image/jpeg");
 
+  if (!img || img.length < 100) {
+    alert("Capture a foto antes de finalizar.");
+    return;
+  }
+
   document.getElementById("status").style.display = "block";
 
   fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
@@ -238,7 +273,9 @@ function enviar() {
     body: JSON.stringify({ nome, bloco, apto, img })
   });
 
-  setTimeout(() => location.reload(), 5000);
+  setTimeout(() => {
+    location.reload();
+  }, 5000);
 }
 </script>
 
