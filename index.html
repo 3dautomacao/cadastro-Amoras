@@ -3,108 +3,111 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Cadastro Facial</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f2f2f2;
-    text-align: center;
-    margin: 0;
-    padding: 10px;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  text-align: center;
+  margin: 0;
+  padding: 8px;
+}
 
-  img.logo {
-    width: 80vw;
-    max-width: 320px;
-    margin: 10px auto;
-  }
+img.logo {
+  width: 90vw;
+  max-width: 360px;
+  margin: 5px auto;
+}
 
-  input {
-    width: 90vw;
-    max-width: 320px;
-    padding: 10px;
-    margin: 6px auto;
-    font-size: 16px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    display: block;
-  }
+input {
+  width: 90vw;
+  max-width: 320px;
+  padding: 8px;
+  margin: 5px auto;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  display: block;
+}
 
-  button {
-    width: 60vw;
-    max-width: 220px;
-    padding: 10px;
-    margin: 8px;
-    font-size: 15px;
-    border-radius: 8px;
-    border: none;
-    background: #0066cc;
-    color: white;
-    cursor: pointer;
-  }
+button {
+  width: 80vw;
+  max-width: 300px;
+  padding: 10px;
+  margin: 6px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: none;
+  background: #0066cc;
+  color: white;
+  cursor: pointer;
+}
 
-  .camera-container {
-    position: relative;
-    width: 90vw;
-    max-width: 320px;
-    margin: auto;
-  }
+.camera-container {
+  position: relative;
+  width: 90vw;
+  max-width: 320px;
+  margin: auto;
+}
 
-  video {
-    width: 100%;
-    border-radius: 12px;
-  }
+video {
+  width: 100%;
+  border-radius: 12px;
+}
 
-  .face-oval {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 70%;
-    height: 90%;
-    border: 3px solid #00ff00;
-    border-radius: 50% / 60%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-  }
+.face-oval {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  height: 90%;
+  border: 3px solid #00ff00;
+  border-radius: 50% / 60%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 
-  .btn-trocar {
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 70%;
-    background: rgba(0,0,0,0.7);
-    z-index: 10;
-  }
+.btn-trocar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  background: rgba(0,0,0,0.7);
+  z-index: 10;
+}
 
-  .info {
-    background: #e0f0ff;
-    padding: 10px;
-    border-radius: 8px;
-    margin: 10px auto;
-    font-size: 14px;
-    max-width: 320px;
-  }
+.info {
+  background: #e0f0ff;
+  padding: 8px;
+  border-radius: 8px;
+  margin: 8px auto;
+  font-size: 14px;
+  max-width: 320px;
+}
 
-  #preview img {
-    width: 90vw;
-    max-width: 320px;
-    border-radius: 12px;
-  }
+#preview img {
+  width: 90vw;
+  max-width: 320px;
+  border-radius: 12px;
+}
 
-  .lgpd {
-    background: #fff3cd;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 14px;
-    max-width: 320px;
-    margin: auto;
-  }
+.lgpd {
+  background: #fff3cd;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  max-width: 320px;
+  margin: auto;
+}
+
+.hidden {
+  display: none;
+}
 </style>
 </head>
 
@@ -112,15 +115,15 @@
 
 <img src="logo.png" class="logo">
 
-<h3>Cadastro Facial do Morador</h3>
+<h3>Cadastro Facial</h3>
 
 <div class="lgpd" id="lgpdBox">
-  Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema de controle de acesso do condomínio.
+  Ao enviar sua foto, você autoriza o uso dela para cadastro no sistema do condomínio.
   <br><br>
   <button onclick="aceitarLGPD()">OK</button>
 </div>
 
-<div id="formulario" style="display:none;">
+<div id="formulario" class="hidden">
 
   <input id="nome" placeholder="Nome completo">
   <input id="bloco" placeholder="Bloco">
@@ -130,46 +133,49 @@
     Posicione seu rosto dentro do oval.
   </div>
 
-  <div class="camera-container">
+  <div class="camera-container" id="cameraArea">
     <button class="btn-trocar" onclick="trocarCamera()">Trocar câmera</button>
     <video id="video" autoplay playsinline></video>
     <div class="face-oval"></div>
   </div>
 
-  <button onclick="capturar()">Capturar Foto</button>
+  <button id="btnCapturar" onclick="capturar()">Capturar Foto</button>
 
-  <canvas id="canvas" style="display:none;"></canvas>
+  <canvas id="canvas" class="hidden"></canvas>
 
-  <div id="preview" style="display:none;">
+  <div id="preview" class="hidden">
     <h4>Prévia da Foto</h4>
     <img id="fotoPreview">
     <br>
+    <button onclick="voltarCamera()">Refazer foto</button>
     <button onclick="enviar()">Finalizar</button>
-  </div>
-
-  <div id="status" style="display:none; font-weight:bold; color:green;">
-    Salvando dados, aguarde...
   </div>
 
 </div>
 
 <script>
 let usandoFrontal = true;
-let rostoDetectado = false;
+let faceDetector;
+let lastDetection = null;
+let cameraInstance;
 
-function aceitarLGPD() {
-  document.getElementById("lgpdBox").style.display = "none";
-  document.getElementById("formulario").style.display = "block";
+async function aceitarLGPD() {
+  document.getElementById("lgpdBox").classList.add("hidden");
+  document.getElementById("formulario").classList.remove("hidden");
   iniciarCamera();
+  iniciarDeteccao();
 }
 
 async function iniciarCamera() {
   const video = document.getElementById("video");
+
+  if (cameraInstance) cameraInstance.stop();
+
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: usandoFrontal ? "user" : "environment" }
   });
+
   video.srcObject = stream;
-  iniciarDeteccao(video);
 }
 
 function trocarCamera() {
@@ -177,59 +183,75 @@ function trocarCamera() {
   iniciarCamera();
 }
 
-function iniciarDeteccao(video) {
-  const faceMesh = new FaceMesh({
-    locateFile: file =>
-      `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+function iniciarDeteccao() {
+  faceDetector = new FaceDetection.FaceDetection({
+    locateFile: (file) => 
+      `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
   });
 
-  faceMesh.setOptions({
-    maxNumFaces: 1,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
+  faceDetector.setOptions({
+    model: "short",
+    minDetectionConfidence: 0.6
   });
 
-  faceMesh.onResults(results => {
-    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-      rostoDetectado = true;
+  faceDetector.onResults(results => {
+    if (results.detections.length > 0) {
+      lastDetection = results.detections[0];
       document.getElementById("mensagem").innerText =
         "Rosto detectado. Mantenha dentro do oval.";
     } else {
-      rostoDetectado = false;
+      lastDetection = null;
       document.getElementById("mensagem").innerText =
         "Nenhum rosto detectado.";
     }
   });
 
-  const camera = new Camera(video, {
+  cameraInstance = new Camera(document.getElementById("video"), {
     onFrame: async () => {
-      await faceMesh.send({ image: video });
+      await faceDetector.send({ image: video });
     },
     width: 320,
     height: 480
   });
 
-  camera.start();
+  cameraInstance.start();
 }
 
 function capturar() {
-  if (!rostoDetectado) {
-    alert("Rosto não detectado. Centralize o rosto.");
+  if (!lastDetection) {
+    alert("Rosto não detectado.");
+    return;
+  }
+
+  const box = lastDetection.boundingBox;
+  const cx = box.xCenter;
+  const cy = box.yCenter;
+
+  if (cx < 0.35 || cx > 0.65 || cy < 0.25 || cy > 0.75) {
+    alert("Posicione o rosto dentro do oval.");
     return;
   }
 
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0);
 
-  document.getElementById("fotoPreview").src =
-    canvas.toDataURL("image/jpeg");
+  document.getElementById("fotoPreview").src = canvas.toDataURL("image/jpeg");
 
-  document.getElementById("preview").style.display = "block";
+  // Reorganiza layout
+  document.getElementById("cameraArea").classList.add("hidden");
+  document.getElementById("btnCapturar").classList.add("hidden");
+  document.getElementById("preview").classList.remove("hidden");
+}
+
+function voltarCamera() {
+  document.getElementById("preview").classList.add("hidden");
+  document.getElementById("cameraArea").classList.remove("hidden");
+  document.getElementById("btnCapturar").classList.remove("hidden");
 }
 
 function enviar() {
@@ -244,7 +266,7 @@ function enviar() {
 
   const img = document.getElementById("canvas").toDataURL("image/jpeg");
 
-  document.getElementById("status").style.display = "block";
+  alert("Salvando dados, aguarde...");
 
   fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
     method: "POST",
