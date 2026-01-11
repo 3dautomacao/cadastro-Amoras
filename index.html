@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro Facial - Condomínio</title>
+  <style>
+    body { font-family: Arial; text-align: center; background: #f2f2f2; }
+    input, button { width: 90%; padding: 12px; margin: 8px; font-size: 16px; }
+    video, canvas { width: 90%; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Cadastro Facial do Morador</h2>
+
+  <input id="nome" placeholder="Nome completo">
+  <input id="bloco" placeholder="Bloco">
+  <input id="apto" placeholder="Apartamento">
+
+  <video id="video" autoplay></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <button onclick="iniciarCamera()">Ativar Câmera</button>
+  <button onclick="capturar()">Capturar Foto</button>
+  <button onclick="enviar()">Finalizar Cadastro</button>
+
+  <script>
+    let stream;
+
+    function iniciarCamera() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(s => {
+          stream = s;
+          document.getElementById("video").srcObject = s;
+        });
+    }
+
+    function capturar() {
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      alert("Foto capturada!");
+    }
+
+    function enviar() {
+      const nome = document.getElementById("nome").value;
+      const bloco = document.getElementById("bloco").value;
+      const apto = document.getElementById("apto").value;
+
+      if (!nome || !bloco || !apto) {
+        alert("Preencha todos os campos!");
+        return;
+      }
+
+      const img = document.getElementById("canvas").toDataURL("image/jpeg");
+
+      fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
+        method: "POST",
+        body: JSON.stringify({ nome, bloco, apto, img })
+      }).then(() => {
+        alert("Cadastro realizado com sucesso!");
+      });
+    }
+  </script>
+
+</body>
+</html>
