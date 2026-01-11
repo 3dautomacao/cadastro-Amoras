@@ -140,7 +140,7 @@
   <input id="apto" placeholder="Apartamento">
 
   <div class="info" id="mensagem">
-    Posicione seu rosto dentro do oval.
+    Posicione seu rosto dentro do oval verde, não use os oculos e não sorria.
   </div>
 
   <div class="camera-container">
@@ -160,7 +160,7 @@
   <canvas id="canvas" style="display:none;"></canvas>
 
   <div id="status" style="display:none; font-weight:bold; color:green;">
-    Salvando dados, aguarde...
+    Salvando dados, aguarde Validação da ADMINSTRAÇÃO...
   </div>
 
 </div>
@@ -194,7 +194,7 @@ async function iniciarCamera() {
   } else {
     rostoDetectado = true; // libera captura na traseira
     document.getElementById("mensagem").innerText =
-      "Posicione o rosto no oval e capture a foto.";
+      "Posicione o rosto no oval e capture a foto, Sem oculos e Não sorria.";
   }
 }
 
@@ -219,7 +219,7 @@ function iniciarFaceMesh(video) {
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
       rostoDetectado = true;
       document.getElementById("mensagem").innerText =
-        "Rosto detectado. Mantenha dentro do oval.";
+        "Rosto detectado. Mantenha dentro do oval, Não Sorria.";
     } else {
       rostoDetectado = false;
       document.getElementById("mensagem").innerText =
@@ -299,6 +299,7 @@ function enviar() {
 
 </body>
 </html>
+
 
 
 
