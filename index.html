@@ -13,17 +13,19 @@
     }
 
     img.logo {
-      max-width: 160px;
+      max-width: 320px;   /* 2x maior */
       margin: 10px auto;
     }
 
     input {
-      width: 45%;
+      width: 90%;
+      max-width: 320px;
       padding: 8px;
-      margin: 6px;
+      margin: 6px auto;
       font-size: 14px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      display: block;
     }
 
     button {
@@ -38,10 +40,16 @@
       cursor: pointer;
     }
 
-    video, canvas {
-      width: 90%;
-      max-width: 380px;
+    video {
+      width: 280px;
       border-radius: 10px;
+    }
+
+    .camera-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     .camera-container {
@@ -68,7 +76,7 @@
       margin: 8px auto;
       font-size: 13px;
       width: 90%;
-      max-width: 380px;
+      max-width: 320px;
     }
 
     .lgpd {
@@ -78,12 +86,19 @@
       margin: 10px auto;
       font-size: 13px;
       width: 90%;
-      max-width: 380px;
+      max-width: 320px;
     }
 
     #preview {
       display: none;
       margin-top: 10px;
+    }
+
+    #status {
+      display: none;
+      font-weight: bold;
+      color: green;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -102,8 +117,10 @@
     <button onclick="aceitarLGPD()">OK</button>
   </div>
 
-  <!-- DADOS -->
+  <!-- FORMULÁRIO -->
   <div id="formulario" style="display:none;">
+
+    <!-- TEXTBOX EM COLUNA -->
     <input id="nome" placeholder="Nome completo">
     <input id="bloco" placeholder="Bloco">
     <input id="apto" placeholder="Apartamento">
@@ -112,26 +129,31 @@
       Posicione seu rosto dentro do oval e clique em "Capturar Foto".
     </div>
 
-    <!-- CAMERA -->
-    <div class="camera-container">
-      <video id="video" autoplay playsinline></video>
-      <div class="face-oval"></div>
+    <!-- CÂMERA + BOTÃO AO LADO -->
+    <div class="camera-wrapper">
+      <div class="camera-container">
+        <video id="video" autoplay playsinline></video>
+        <div class="face-oval"></div>
+      </div>
+
+      <button onclick="trocarCamera()">Trocar</button>
     </div>
 
     <canvas id="canvas" style="display:none;"></canvas>
 
-    <!-- BOTÕES -->
     <br>
-    <button onclick="trocarCamera()">Trocar</button>
     <button onclick="capturar()">Capturar</button>
 
     <!-- PRÉVIA -->
     <div id="preview">
       <h4>Prévia da Foto</h4>
-      <img id="fotoPreview" style="width:90%; max-width:260px; border-radius:10px;">
-      <br>
+      <img id="fotoPreview" style="width:260px; border-radius:10px;">
+      <br><br>
       <button onclick="enviar()">Finalizar</button>
     </div>
+
+    <div id="status">Salvando dados, aguarde...</div>
+
   </div>
 
   <script>
@@ -166,11 +188,9 @@
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
       canvas.getContext("2d").drawImage(video, 0, 0);
 
       const img = canvas.toDataURL("image/jpeg");
-
       document.getElementById("fotoPreview").src = img;
       document.getElementById("preview").style.display = "block";
 
@@ -190,13 +210,16 @@
 
       const img = document.getElementById("canvas").toDataURL("image/jpeg");
 
+      document.getElementById("status").style.display = "block";
+
       fetch("https://script.google.com/macros/s/AKfycbzeUGCpm9bz0VvT-uW19D1RiI_fLi49Baaft6S_mEtl5lPyS86szqxpgaug3FJhG_46/exec", {
         method: "POST",
         body: JSON.stringify({ nome, bloco, apto, img })
-      }).then(() => {
-        alert("Cadastro realizado com sucesso!");
-        location.reload();
       });
+
+      setTimeout(() => {
+        location.reload();
+      }, 5000);
     }
   </script>
 
