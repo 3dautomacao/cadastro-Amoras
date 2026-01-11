@@ -219,7 +219,7 @@ function iniciarFaceMesh(video) {
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
       rostoDetectado = true;
       document.getElementById("mensagem").innerText =
-        "Rosto detectado. Mantenha dentro do oval, Não Sorria.";
+        "Mantenha o rosto dentro do oval verde, NAO SORRIA, SEM OCULOS.";
     } else {
       rostoDetectado = false;
       document.getElementById("mensagem").innerText =
@@ -299,6 +299,7 @@ function enviar() {
 
 </body>
 </html>
+
 
 
 
